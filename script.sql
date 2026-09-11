@@ -1,5 +1,3 @@
--- Crear la base de datos
-CREATE DATABASE agenda;
 CREATE SCHEMA prototipo;
 
 -- Configurar el search_path para que las tablas se creen dentro de ese esquema
