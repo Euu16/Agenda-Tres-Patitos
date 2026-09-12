@@ -5,7 +5,7 @@
 | RF-08 | 1. Modelo Conceptual | Definir la entidad ubicaciones y sus atributos (id_ubicacion, nombre, direccion, ciudad, capacidad). | Completado |
 | RF-08 | 2. Modelo Lógico | Estructurar la tabla relacional ubicaciones. | Completado |
 | RF-08 | 3. Modelo Físico | Codificar el CREATE TABLE ubicaciones en PostgreSQL. | Completado |
-| RF-08 | 4. Interfaz Gráfica | Desarrollar pestaña y formulario CRUD de ubicaciones. | Pendiente |
+| RF-08 | 4. Interfaz Gráfica | Desarrollar pestaña y formulario CRUD de ubicaciones. | Completado |
 | RF-09 | 1. Modelo Conceptual | Relación de cardinalidad entre Eventos y ubicaciones. | Completado |
 | RF-09 | 2. Modelo Lógico | Incorporar id_ubicacion como FK en eventos. | Completado |
 | RF-09 | 3. Modelo Físico | Añadir la relación referencial en PostgreSQL. | Completado |
@@ -21,7 +21,7 @@
 | RF-15 | 1. Modelo Conceptual | Definir tareas vinculada a eventos. | Completado |
 | RF-15 | 2. Modelo Lógico | FKs entre tarea, evento y usuario responsable. | Completado |
 | RF-15 | 3. Modelo Físico | Crear tabla tareas con restricciones de estado. | Completado |
-| RF-15 | 4. Interfaz Gráfica | Formularios CRUD completo de tareas. | Pendiente |
+| RF-15 | 4. Interfaz Gráfica | Formularios CRUD completo de tareas. | Completado |
 | RF-16 | 3. Modelo Físico | Consultas de tareas pendientes/vencidas por usuario. | Completado |
 | RF-16 | 4. Interfaz Gráfica | Desplegar métricas en pantalla. | Pendiente |
 | RF-17 | 3. Modelo Físico | Consulta de reporte cuantitativo de tareas activas/vencidas. | Completado |
