@@ -981,6 +981,27 @@ class AppAgenda(ctk.CTk):
         ctk.CTkButton(form, text="🧹 Nueva / Limpiar", command=self.limpiar_form_disponibilidad, fg_color="gray").pack(fill="x", padx=10, pady=5)
         ctk.CTkButton(form, text="🗑️ Eliminar seleccionada", command=self.eliminar_disponibilidad, fg_color="#b33939", hover_color="#8f2d2d").pack(fill="x", padx=10, pady=5)
 
+        ctk.CTkLabel(form, text="Consultar disponibilidad", font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(20, 8))
+
+        ctk.CTkLabel(form, text="Usuario a consultar").pack(anchor="w", padx=10, pady=(4, 2))
+        self.combo_consulta_usuario = ctk.CTkComboBox(form, values=["Seleccione un usuario"], state="readonly")
+        self.combo_consulta_usuario.set("Seleccione un usuario")
+        self.combo_consulta_usuario.pack(fill="x", padx=10, pady=4)
+
+        ctk.CTkLabel(form, text="Fecha").pack(anchor="w", padx=10, pady=(8, 2))
+        self.fecha_consulta = self.crear_selector_fecha(form)
+        self.fecha_consulta.pack(fill="x", padx=10, pady=4)
+
+        ctk.CTkLabel(form, text="Rango horario").pack(anchor="w", padx=10, pady=(8, 2))
+        fila_rango = ctk.CTkFrame(form, fg_color="transparent")
+        fila_rango.pack(fill="x", padx=10)
+        self.entry_consulta_inicio = ctk.CTkEntry(fila_rango, placeholder_text="Desde HH:MM")
+        self.entry_consulta_inicio.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        self.entry_consulta_fin = ctk.CTkEntry(fila_rango, placeholder_text="Hasta HH:MM")
+        self.entry_consulta_fin.pack(side="left", fill="x", expand=True, padx=(4, 0))
+
+        ctk.CTkButton(form, text="🔍 Verificar disponibilidad", command=self.consultar_disponibilidad_usuario).pack(fill="x", padx=10, pady=(10, 5))
+
         self.limpiar_form_disponibilidad()
 
     def disponibilidad_seleccionada_id(self):
@@ -1101,8 +1122,41 @@ class AppAgenda(ctk.CTk):
 
             valores_u = ["Seleccione un usuario"] + list(self.usuarios_combo.keys())
             self.combo_disp_usuario.configure(values=valores_u)
+            self.combo_consulta_usuario.configure(values=valores_u)
         except Exception as e:
             print(f"Error cargando disponibilidades: {e}")
+
+    def consultar_disponibilidad_usuario(self):
+        usuario = self.usuarios_combo.get(self.combo_consulta_usuario.get())
+        if usuario is None:
+            return messagebox.showwarning("Selección requerida", "Selecciona un usuario para consultar.")
+
+        fecha = self.obtener_fecha(self.fecha_consulta)
+        hora_inicio = self.entry_consulta_inicio.get().strip()
+        hora_fin = self.entry_consulta_fin.get().strip()
+
+        try:
+            datetime.strptime(hora_inicio, "%H:%M")
+            datetime.strptime(hora_fin, "%H:%M")
+        except ValueError:
+            return messagebox.showwarning("Formato inválido", "Las horas deben ser HH:MM, por ejemplo 14:00.")
+        if hora_fin <= hora_inicio:
+            return messagebox.showwarning("Rango inválido", "La hora final debe ser posterior a la inicial.")
+
+        try:
+            resultado = self.ejecutar_consulta(
+                "SELECT usuario_disponible(%s, %s, %s, %s)",
+                (usuario, fecha, hora_inicio, hora_fin),
+                fetch=True
+            )
+            disponible = resultado[0][0]
+            nombre_usuario = self.combo_consulta_usuario.get()
+            if disponible:
+                messagebox.showinfo("Disponible", f"{nombre_usuario} está libre entre {hora_inicio} y {hora_fin} el {fecha}.")
+            else:
+                messagebox.showwarning("Ocupado", f"{nombre_usuario} NO está disponible entre {hora_inicio} y {hora_fin} el {fecha}.")
+        except Exception as e:
+            messagebox.showerror("Error al consultar", str(e))
 
     # -------------------- REFRESCO GENERAL --------------------
 
