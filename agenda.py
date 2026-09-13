@@ -136,6 +136,7 @@ class AppAgenda(ctk.CTk):
             ("Ubicaciones", "📍"),
             ("Tareas", "✅"),
             ("Disponibilidad", "🕒"),
+            ("Reportes", "📊"),
         ], start=2):
             btn = ctk.CTkButton(
                 self.sidebar_frame, text=f"{icono}  {nombre}",
@@ -149,7 +150,7 @@ class AppAgenda(ctk.CTk):
             self.sidebar_frame,
             text="🔄  Recargar datos",
             command=self.actualizar_todas_las_tablas
-        ).grid(row=8, column=0, padx=15, pady=(20, 5), sticky="ew")
+        ).grid(row=9, column=0, padx=15, pady=(20, 5), sticky="ew")
 
         ctk.CTkLabel(self.sidebar_frame, text="APARIENCIA", font=ctk.CTkFont(size=11, weight="bold")).grid(
             row=11, column=0, padx=20, pady=(10, 5), sticky="w"
@@ -177,6 +178,7 @@ class AppAgenda(ctk.CTk):
         self.tab_ubicaciones = self.tabview.add("Ubicaciones")
         self.tab_tareas = self.tabview.add("Tareas")
         self.tab_disponibilidad = self.tabview.add("Disponibilidad")
+        self.tab_reportes = self.tabview.add("Reportes")
 
         self.configurar_pestana_usuarios()
         self.configurar_pestana_categorias()
@@ -184,6 +186,7 @@ class AppAgenda(ctk.CTk):
         self.configurar_pestana_ubicaciones()
         self.configurar_pestana_tareas()
         self.configurar_pestana_disponibilidad()
+        self.configurar_pestana_reportes()
         self.seleccionar_modulo("Usuarios")
 
     def al_cambiar_pestana(self):
@@ -1158,6 +1161,66 @@ class AppAgenda(ctk.CTk):
         except Exception as e:
             messagebox.showerror("Error al consultar", str(e))
 
+        # -------------------- REPORTES --------------------
+
+    def configurar_pestana_reportes(self):
+        self.crear_encabezado(self.tab_reportes, "Reportes", "Paneles de solo lectura con métricas del sistema.")
+
+        cuerpo = ctk.CTkFrame(self.tab_reportes, fg_color="transparent")
+        cuerpo.pack(fill="both", expand=True, padx=10, pady=5)
+        cuerpo.grid_columnconfigure(0, weight=1)
+        cuerpo.grid_rowconfigure(0, weight=1)
+        cuerpo.grid_rowconfigure(1, weight=1)
+
+        # ---- RF-10: ranking de ubicaciones ----
+        bloque_ubi = ctk.CTkFrame(cuerpo)
+        bloque_ubi.grid(row=0, column=0, sticky="nsew", pady=(0, 10))
+        ctk.CTkLabel(bloque_ubi, text="Ranking de ubicaciones más solicitadas", font=ctk.CTkFont(size=15, weight="bold")).pack(
+            anchor="w", padx=15, pady=(12, 8)
+        )
+        self.tree_reporte_ubicaciones = self.crear_treeview(
+            bloque_ubi, ("ID", "Nombre", "Ciudad", "Total eventos"),
+            (60, 200, 150, 120)
+        )
+
+        # ---- RF-16 / RF-17: tareas pendientes y vencidas por usuario ----
+        bloque_tareas = ctk.CTkFrame(cuerpo)
+        bloque_tareas.grid(row=1, column=0, sticky="nsew")
+        ctk.CTkLabel(bloque_tareas, text="Carga de trabajo y tareas vencidas por usuario", font=ctk.CTkFont(size=15, weight="bold")).pack(
+            anchor="w", padx=15, pady=(12, 8)
+        )
+        self.tree_reporte_tareas = self.crear_treeview(
+            bloque_tareas, ("ID Usuario", "Nombre", "Apellido", "Tareas activas", "Tareas vencidas"),
+            (80, 150, 150, 120, 120)
+        )
+
+        ctk.CTkButton(
+            self.tab_reportes, text="🔄 Actualizar reportes", command=self.cargar_datos_reportes
+        ).pack(anchor="e", padx=15, pady=(0, 10))
+
+    def cargar_datos_reportes(self):
+        try:
+            rows_ubi = self.ejecutar_consulta(
+                "SELECT id_ubicacion, nombre, ciudad, total_eventos FROM vista_ranking_ubicaciones",
+                fetch=True
+            )
+            for item in self.tree_reporte_ubicaciones.get_children(): self.tree_reporte_ubicaciones.delete(item)
+            for row in rows_ubi:
+                self.tree_reporte_ubicaciones.insert("", "end", values=(row[0], row[1], row[2], row[3]))
+        except Exception as e:
+            print(f"Error cargando ranking de ubicaciones: {e}")
+
+        try:
+            rows_tareas = self.ejecutar_consulta(
+                "SELECT id_usuario, nombre, apellido, tareas_activas, tareas_vencidas FROM vista_tareas_pendientes_por_usuario",
+                fetch=True
+            )
+            for item in self.tree_reporte_tareas.get_children(): self.tree_reporte_tareas.delete(item)
+            for row in rows_tareas:
+                self.tree_reporte_tareas.insert("", "end", values=(row[0], row[1], row[2], row[3], row[4]))
+        except Exception as e:
+            print(f"Error cargando reporte de tareas: {e}") 
+
     # -------------------- REFRESCO GENERAL --------------------
 
     def actualizar_todas_las_tablas(self):
@@ -1168,6 +1231,7 @@ class AppAgenda(ctk.CTk):
         self.cargar_datos_tareas()
         self.cargar_tipos_disponibilidad()
         self.cargar_datos_disponibilidades()
+        self.cargar_datos_reportes()
 
 
 if __name__ == "__main__":
